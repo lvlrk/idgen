@@ -5,7 +5,27 @@ import sys
 import wget
 import os
 
-version = 0.1
+def mkId(region, system, pub, game=''):
+    ch = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+    tmp = []
+    tmp = list("      ")
+
+    tmp[0] = system
+    if game == '':
+        tmp[1] = random.choice(ch)
+        tmp[2] = random.choice(ch)
+    else:
+        tmp[1] = game[0]
+        tmp[2] = game[1]
+
+    tmp[3] = region
+    tmp[4] = pub[0]
+    tmp[5] = pub[1]
+
+    return "".join(tmp)
+
+version = 0.2
 url = "https://www.gametdb.com/wiitdb.txt"
 db = "wiitdb.txt"
 prompt = False
@@ -17,9 +37,31 @@ h = "usage: idgen.py [-pcd]\n"\
     " -c, --count     how many ids to make\n"\
     " -d, --database  title database file"
 
-if len(sys.argv) < 2:
-    print(h)
-    exit(1)
+regions = [{'A': "all"}, {'B': "virtual"}, {'C': "china emu"},
+           {'D': "german"}, {'E': "NTSC"}, {'F': "french"},
+           {'I': "italian"}, {'J': "japan"}, {'K': "korea"},
+           {'L': "japan2pal"}, {'M': "NTSC2pal"}, {'N': "japan2NTSC"},
+           {'P': "pal"}, {'Q': "koreajapan"}, {'S': "spain"},
+           {'T': "koreaNTSC"}, {'U': "wiiware"}, {'W': "taiwan"},
+           {'X': "homebrew"}]
+regions_str = "ABCDEFIJKLMNPQSTUWX"
+
+systems = [{'C': "commodore"}, {'D': "demo"}, {'E': "virtual"},
+           {'F': "nes"}, {'G': "gc"}, {'H': "channel"},
+           {'J': "snes"}, {'L': "master"}, {'M': "megadrive"},
+           {'N': "n64"}, {'P': "turbografx"}, {'Q': "turbografx cd"},
+           {'R': "old wii"}, {'S': "new wii"}, {'W': "wiiware"},
+           {'X': "msx"}]
+systems_str = "CDEFGHJLMNPQRSWX"
+
+pubs = [{"00": "Nintendo"}, {"01": "Nintendo"}, {"08": "Capcom"},
+            {"AF": "Namco Bandai Games"}, {"ZZ": "Nintendo"}]
+pubs_str = ["00", "01", "08", "ZZ", "AF"]
+
+
+#if len(sys.argv) < 2:
+    #print(h)
+    #exit(1)
 
 for i in range(len(sys.argv)):
     if sys.argv[i] == "-p" or sys.argv[i] == "--prompt":
@@ -58,27 +100,6 @@ if os.path.exists(db) == False:
 print("idgen - A shitty Wii custom game ID generator\nby lvlrk\n")
 
 if prompt:
-    regions = [{'A': "all"}, {'B': "virtual"}, {'C': "china emu"},
-           {'D': "german"}, {'E': "NTSC"}, {'F': "french"},
-           {'I': "italian"}, {'J': "japan"}, {'K': "korea"},
-           {'L': "japan2pal"}, {'M': "NTSC2pal"}, {'N': "japan2NTSC"},
-           {'P': "pal"}, {'Q': "koreajapan"}, {'S': "spain"},
-           {'T': "koreaNTSC"}, {'U': "wiiware"}, {'W': "taiwan"},
-           {'X': "homebrew"}]
-    regions_str = "ABCDEFIJKLMNPQSTUWX"
-
-    systems = [{'C': "commodore"}, {'D': "demo"}, {'E': "virtual"},
-           {'F': "nes"}, {'G': "gc"}, {'H': "channel"},
-           {'J': "snes"}, {'L': "master"}, {'M': "megadrive"},
-           {'N': "n64"}, {'P': "turbografx"}, {'Q': "turbografx cd"},
-           {'R': "old wii"}, {'S': "new wii"}, {'W': "wiiware"},
-           {'X': "msx"}]
-    systems_str = "CDEFGHJLMNPQRSWX"
-
-    pubs = [{"00": "Nintendo"}, {"01": "Nintendo"},
-            {"AF": "Namco Bandai Games"}]
-    pubs_str = ["00", "01", "AF"]
-
     for i in regions:
         print(i)
     print("\nWhich region (default: {'E': 'NTSC'}): ")
@@ -99,10 +120,22 @@ if prompt:
 
     for i in pubs:
         print(i)
+    print("note: publisher list isnt complete yet")
     print("\nWhich publisher (default: {'00': 'Nintendo'}): ")
     spub = input()
     if(spub == '' or spub not in pubs_str):
         spub = "00"
+
+    print()
+
+    print("\nWhich game (optional): ")
+    sgame = input()
+    if sgame == '':
+        custom = False
+    else:
+        custom = True
+
+    print()
 else:
     sregion = 'E'
     ssystem = 'S'
@@ -123,31 +156,34 @@ tidl = []
 
 nids = []
 
+lc = count
+bbb = 0
+
 if count == -1:
     while True:
-        tidl = list("      ")
-        tidl[0] = ssystem
-        tidl[1] = random.choice(ch)
-        tidl[2] = random.choice(ch)
-        tidl[3] = sregion
-        tidl[4] = spub[0]
-        tidl[5] = spub[1]
-        tid = "".join(tidl)
+        tid = mkId(sregion, ssystem, spub, sgame)
 
-        if(tid not in ids):
-            nids.append(tid)
+        if tid not in ids:
             print(tid)
+
 elif count > 0:
-    for i in range(count):
-        tidl = list("      ")
-        tidl[0] = ssystem
-        tidl[1] = random.choice(ch)
-        tidl[2] = random.choice(ch)
-        tidl[3] = sregion
-        tidl[4] = spub[0]
-        tidl[5] = spub[1]
-        tid = "".join(tidl)
-
-        if(tid not in ids):
-            nids.append(tid)
+    if sgame != '':
+        lc = 1
+    
+    while bbb < lc:
+        tid =  mkId(sregion, ssystem, spub, sgame)
+        if tid not in ids:
             print(tid)
+        else:
+            print(f"{tid} found in database")
+            print("\ntry for another id [y/n]: ")
+            choice = input()
+
+            if choice == 'y':
+                print()
+                sgame = "".join(random.choices(ch, k=2))
+                bbb -= 1
+            else:
+                exit(0)
+
+        bbb += 1
