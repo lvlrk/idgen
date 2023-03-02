@@ -1,4 +1,4 @@
-#!/nix/store/h4h5rxs0hzpzvz37yrwv1k2na1acgzww-python3-3.9.15/bin/python3
+#!/usr/bin/python3
 
 __name__ = "idgen"
 __author__ = "lvlrk"
