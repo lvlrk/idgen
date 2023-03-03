@@ -2,7 +2,7 @@
 
 __name__ = "idgen"
 __author__ = "lvlrk"
-__version__ = 1.0
+__version__ = 0.3
 
 import sys
 import urllib3
