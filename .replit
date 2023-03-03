@@ -1,0 +1,4 @@
+run = "./idgen.py -g"
+
+[nix]
+channel = "stable-22_11"

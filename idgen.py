@@ -1,189 +1,92 @@
-#!/usr/bin/python3
+#!/nix/store/h4h5rxs0hzpzvz37yrwv1k2na1acgzww-python3-3.9.15/bin/python3
 
-import random
+__name__ = "idgen"
+__author__ = "lvlrk"
+__version__ = 1.0
+
 import sys
-import wget
+import urllib3
+import codes
 import os
+import hashlib
+import gameid
 
-def mkId(region, system, pub, game=''):
-    ch = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+http = urllib3.PoolManager()
 
-    tmp = []
-    tmp = list("      ")
+generate = False
 
-    tmp[0] = system
-    if game == '':
-        tmp[1] = random.choice(ch)
-        tmp[2] = random.choice(ch)
-    else:
-        tmp[1] = game[0]
-        tmp[2] = game[1]
+usage = f"""usage: {__name__} [-g]
+     --help      display this help
+	 --version   print version information
+ -g, --generate  generate a game ID"""
 
-    tmp[3] = region
-    tmp[4] = pub[0]
-    tmp[5] = pub[1]
-
-    return "".join(tmp)
-
-version = 0.2
-url = "https://www.gametdb.com/wiitdb.txt"
-db = "wiitdb.txt"
-prompt = False
-count = -1
-h = "usage: idgen.py [-pcd]\n"\
-    "     --help      print this help\n"\
-    "     --version   print version info\n"\
-    " -p, --prompt    prompt user for id codes\n"\
-    " -c, --count     how many ids to make\n"\
-    " -d, --database  title database file"
-
-regions = [{'A': "all"}, {'B': "virtual"}, {'C': "china emu"},
-           {'D': "german"}, {'E': "NTSC"}, {'F': "french"},
-           {'I': "italian"}, {'J': "japan"}, {'K': "korea"},
-           {'L': "japan2pal"}, {'M': "NTSC2pal"}, {'N': "japan2NTSC"},
-           {'P': "pal"}, {'Q': "koreajapan"}, {'S': "spain"},
-           {'T': "koreaNTSC"}, {'U': "wiiware"}, {'W': "taiwan"},
-           {'X': "homebrew"}]
-regions_str = "ABCDEFIJKLMNPQSTUWX"
-
-systems = [{'C': "commodore"}, {'D': "demo"}, {'E': "virtual"},
-           {'F': "nes"}, {'G': "gc"}, {'H': "channel"},
-           {'J': "snes"}, {'L': "master"}, {'M': "megadrive"},
-           {'N': "n64"}, {'P': "turbografx"}, {'Q': "turbografx cd"},
-           {'R': "old wii"}, {'S': "new wii"}, {'W': "wiiware"},
-           {'X': "msx"}]
-systems_str = "CDEFGHJLMNPQRSWX"
-
-pubs = [{"00": "Nintendo"}, {"01": "Nintendo"}, {"08": "Capcom"},
-            {"AF": "Namco Bandai Games"}, {"ZZ": "Nintendo"}]
-pubs_str = ["00", "01", "08", "ZZ", "AF"]
-
-
-#if len(sys.argv) < 2:
-    #print(h)
-    #exit(1)
+if len(sys.argv) < 2:
+	print(usage)
+	exit(1)
 
 for i in range(len(sys.argv)):
-    if sys.argv[i] == "-p" or sys.argv[i] == "--prompt":
-        prompt = True
-    if sys.argv[i] == "--version":
-        print(f"idgen-{str(version)}")
-        exit()
-    if sys.argv[i] == "-c" or sys.argv[i] == "--count":
-        if len(sys.argv) - 2 >= i:
-            count = int(sys.argv[i + 1])
-        else:
-            print(f"{sys.argv[i]} requires 1 argument")
-            exit(1)
-    if sys.argv[i] == "-d" or sys.argv[i] == "--database":
-        if len(sys.argv) - 2 >= i:
-            db = sys.argv[i + 1]
-        else:
-            print(f"{sys.argv[i]} requires 1 argument")
-            exit(1)
+	if sys.argv[i] == "-g" or sys.argv[i] == "--generate":
+		generate = True
+	if sys.argv[i] == "--help":
+		print(usage)
+		exit(0)
+	if sys.argv[i] == "--version":
+		print(f"{__name__}-{__version__} {__author__}")
+		exit(0)
 
-    if sys.argv[i] == "--help":
-        print(h)
-        exit()
+if os.path.exists("wiitdb.txt") == False:
+	print("warning: wiitdb.txt not found")
+	print("download from gametdb.com? [y/n]")
+	choice = input()
+	if choice == "y":
+		print("downloading database")
+		resp = http.request("GET", "https://www.gametdb.com/wiitdb.txt")
+		if resp.status != 200:
+			print(f"error: bad http request {resp.status}")
+			print(usage)
+			exit(1)
+		with open("wiitdb.txt", "w") as f:
+			f.write(resp.data.decode("utf-8"))
+			f.close()
 
-if os.path.exists(db) == False:
-    print(f"file {db} not found")
-    if os.path.exists("wiitdb.txt") == False:
-        print("downloading wiitdb.txt")
-        wget.download(url)
-        db = "wiitdb.txt"
-    else:
-        print("db = wiitdb.txt")
-        db = "wiitdb.txt"
-    print("\n")
+		print("finished without error")
+	else:
+		print("error: cannot download database")
+		exit(0)
 
-print("idgen - A shitty Wii custom game ID generator\nby lvlrk\n")
+titles = []
 
-if prompt:
-    for i in regions:
-        print(i)
-    print("\nWhich region (default: {'E': 'NTSC'}): ")
-    sregion = input()
-    if(sregion == '' or sregion not in regions_str):
-        sregion = 'E'
+rawdb = ""
+rawdbhash = "e2589926a7b8c4006e7f039c5e2bff81aef9aa2f29ad14a5a30e3fdf63ecbd7b"
 
-    print()
+with open("wiitdb.txt", "r") as f:
+	rawdb = f.read()
+	f.close()
 
-    for i in systems:
-        print(i)
-    print("\nWhich system (default: {'S': 'new wii'}): ")
-    ssystem = input()
-    if(ssystem == '' or ssystem not in systems_str):
-        ssystem = 'S'
+if hashlib.sha256(rawdb.encode("utf-8")).hexdigest() != rawdbhash:
+	print("warning: outdated database")
+	print("re-download database from gametdb.com? [y/n]")
+	choice = input()
+	if choice == "y":
+		print("re-downloading database")
+		resp = http.request("GET", "https://www.gametdb.com/wiitdb.txt")
+		if resp.status != 200:
+			print(f"error: bad http request {resp.status}")
+			print(usage)
+			exit(1)
+		with open("wiitdb.txt", "w") as f:
+			f.write(resp.data.decode("utf-8"))
+			f.close()
 
-    print()
+		print("finished without error")
+	else:
+		print("error: cannot re-download database")
+		exit(0)
 
-    for i in pubs:
-        print(i)
-    print("note: publisher list isnt complete yet")
-    print("\nWhich publisher (default: {'00': 'Nintendo'}): ")
-    spub = input()
-    if(spub == '' or spub not in pubs_str):
-        spub = "00"
+for line in rawdb.split("\n"):
+	entry = line.split(" = ")
+	if entry[0] != "TITLES" and len(entry) >= 2:
+		titles.append({"id": entry[0], "name": entry[1]})
 
-    print()
-
-    print("\nWhich game (optional): ")
-    sgame = input()
-    if sgame == '':
-        custom = False
-    else:
-        custom = True
-
-    print()
-else:
-    sregion = 'E'
-    ssystem = 'S'
-    spub = "AF"
-
-with open(db, "r") as f:
-    dat = f.read()
-    f.close()
-
-ids = []
-
-for line in dat.split("\n"):
-    ids.append(line.split(" ")[0])
-
-ch = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-tid = ""
-tidl = []
-
-nids = []
-
-lc = count
-bbb = 0
-
-if count == -1:
-    while True:
-        tid = mkId(sregion, ssystem, spub, sgame)
-
-        if tid not in ids:
-            print(tid)
-
-elif count > 0:
-    if sgame != '':
-        lc = 1
-    
-    while bbb < lc:
-        tid =  mkId(sregion, ssystem, spub, sgame)
-        if tid not in ids:
-            print(tid)
-        else:
-            print(f"{tid} found in database")
-            print("\ntry for another id [y/n]: ")
-            choice = input()
-
-            if choice == 'y':
-                print()
-                sgame = "".join(random.choices(ch, k=2))
-                bbb -= 1
-            else:
-                exit(0)
-
-        bbb += 1
+id = gameid.gameid("RN2EAF")
+print(id.publisher)

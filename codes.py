@@ -1,0 +1,23 @@
+system_codes = [{"id": "C", "name": "Commodore 64"},
+			    {"id": "D", "name": "GameCube Demo"},
+			   	{"id": "E", "name": "Arcade"},
+			   	{"id": "F", "name": "NES"},
+			   	{"id": "G", "name": "GameCube"},
+			   	{"id": "H", "name": "Wii channel"},
+			   	{"id": "J", "name": "SNES"},
+			   	{"id": "L", "name": "Sega Master System"},
+			   	{"id": "M", "name": "Sega Genesis"},
+			   	{"id": "N", "name": "N64"},
+			   	{"id": "P", "name": "TurboGrafx-16"},
+			   	{"id": "Q", "name": "TurboGrafx-16"},
+			   	{"id": "R", "name": "Wii"},
+			   	{"id": "S", "name": "Wii"},
+			   	{"id": "W", "name": "WiiWare"},
+			   	{"id": "X", "name": "MSX"},
+			   	{"id": "r", "name": "Wii DLC"},
+			   	{"id": "s", "name": "Wii DLC"},
+			   	{"id": "w", "name": "Wii DLC"}]
+
+region_codes = [{"id": "A", "name": "System Wii Channel"},
+			   	{"id": "B", "name": "NTSC"},
+			   	{"id": ""}]
