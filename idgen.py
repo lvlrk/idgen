@@ -17,7 +17,7 @@ generate = False
 
 usage = f"""usage: {__name__} [-g]
      --help      display this help
-	 --version   print version information
+     --version   print version information
  -g, --generate  generate a game ID"""
 
 if len(sys.argv) < 2:
@@ -57,12 +57,13 @@ if os.path.exists("wiitdb.txt") == False:
 titles = []
 
 rawdb = ""
-rawdbhash = "e2589926a7b8c4006e7f039c5e2bff81aef9aa2f29ad14a5a30e3fdf63ecbd7b"
+rawdbhash = "ac9e207cb21e7835bd8a5ec9484c2b2a904cf90e685c696248204f95417f5df8"
 
 with open("wiitdb.txt", "r") as f:
 	rawdb = f.read()
 	f.close()
 
+print(hashlib.sha256(rawdb.encode("utf-8")).hexdigest())
 if hashlib.sha256(rawdb.encode("utf-8")).hexdigest() != rawdbhash:
 	print("warning: outdated database")
 	print("re-download database from gametdb.com? [y/n]")
@@ -88,5 +89,10 @@ for line in rawdb.split("\n"):
 	if entry[0] != "TITLES" and len(entry) >= 2:
 		titles.append({"id": entry[0], "name": entry[1]})
 
-id = gameid.gameid("RN2EAF")
-print(id.publisher)
+print("title_codes = [", end="")
+    
+for title in titles:
+    gid = gameid.gameid(title["id"])
+    print("{" + f'"id": "{gid.title}", "name": "{title["name"]}"' + "}")
+    
+print("]")
