@@ -4,7 +4,8 @@ __name__ = "idgen"
 __author__ = "lvlrk"
 __version__ = 0.3
 
-import sys
+"
+"import sys
 import urllib3
 import codes
 import os
